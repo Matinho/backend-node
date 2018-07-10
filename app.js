@@ -1,9 +1,20 @@
 // Requires (importamos las librerias necesarias)
 var express = require('express');
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
 
 // Inicializar Variables
 var app = express();
+
+// Body Parser
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
+// Importar Rutas
+var appRoutes = require('./routes/app');
+var usuarioRoutes = require('./routes/usuario');
+var loginRoutes = require('./routes/login');
 
 // Conexion a la Base de Datos
 mongoose.connection.openUri('mongodb://localhost:27017/hospitalDB', (err, res) => {
@@ -15,14 +26,12 @@ mongoose.connection.openUri('mongodb://localhost:27017/hospitalDB', (err, res) =
 });
 
 // Rutas
-app.get('/', (req, res, next) => { // next le dice a express que cuando se ejecute continue con la siguiente instrucción
+/* declaro un middleware */
+/* va de la mas especifico a lo menos especifico */
+app.use('/usuario', usuarioRoutes);
+app.use('/login', loginRoutes);
+app.use('/', appRoutes);
 
-    res.status(200).json({
-        ok: true,
-        mensaje: "Peticion realizada correctamente"
-    });
-
-})
 
 // Escuchar Peticiones
 app.listen(3000, () => {
