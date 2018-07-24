@@ -17,7 +17,7 @@ app.get('/', (req, res, next) => { // next le dice a express que cuando se ejecu
     var desde = req.query.desde || 0; // si viene algo en el query lo almaceno, sino almaceno 0
     desde = Number(desde); // fuerzo para que desde sea un numero
 
-    Usuario.find({}, 'nombre email img role')
+    Usuario.find({}, 'nombre email img role google')
         .skip(desde)
         .limit(5)
         .exec(
@@ -75,7 +75,7 @@ app.use('/', (req, res, next) => {
 /*--------- Actualizar usuario ---------*/
 /*--------------------------------------*/
 // :id indica que es un recurso obligatorio de la aplicación 
-app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaRolOMismoUsuario], (req, res) => {
 
     var id = req.params.id;
     var body = req.body;
@@ -130,7 +130,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 /*--------- Crear nuevo usuario ---------*/
 /*---------------------------------------*/
 
-app.post('/', mdAutenticacion.verificaToken, (req, res) => { // mando el middleware con las validaciones (puede ser un arreglo)
+app.post('/', (req, res) => { // mando el middleware con las validaciones (puede ser un arreglo)
 
     var body = req.body; // esto funciona si esta instalado el modulo body-parser
 
@@ -166,7 +166,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => { // mando el middlew
 /*--------- Borrar usuarios por ID -------------*/
 /*----------------------------------------------*/
 
-app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaRol], (req, res) => {
 
     var id = req.params.id;
 

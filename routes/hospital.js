@@ -6,46 +6,111 @@ var app = express();
 
 var Hospital = require('../models/hospital'); // estoy definiendo el modelo de usuario
 
-/*----------------------------------------------*/
-/*--------- Obtener todos los hospitales ---------*/
-/*----------------------------------------------*/
+/*--------------------------------------------------*/
+/* Obtener todos los hospitales                     */
+/*--------------------------------------------------*/
 
 app.get('/', (req, res, next) => { // next le dice a express que cuando se ejecute continue con la siguiente instrucción
 
     var desde = req.query.desde || 0; // si viene algo en el query lo almaceno, sino almaceno 0
     desde = Number(desde); // fuerzo para que desde sea un numero
 
-    Hospital.find({})
-        .populate('usuario', 'nombre email')
-        .skip(desde)
-        .limit(5)
-        .exec(
-            (err, hospitales) => {
+    if (desde === -1) {
 
-                if (err) { // si tengo error mando un msj de error
-                    return res.status(500).json({
-                        ok: false,
-                        mensaje: "Error cargando Hospitales",
-                        errors: err
-                    });
-                }
+        Hospital.find({})
+            .populate('usuario', 'nombre img email')
+            .sort('nombre')
+            .exec(
+                (err, hospitales) => {
 
-                Hospital.count({}, (err, conteo) => {
+                    if (err) { // si tengo error mando un msj de error
+                        return res.status(500).json({
+                            ok: false,
+                            mensaje: "Error cargando Hospitales",
+                            errors: err
+                        });
+                    }
 
-                    res.status(200).json({
-                        ok: true,
-                        hospitales: hospitales,
-                        total: conteo
-                    });
+                    Hospital.count({}, (err, conteo) => {
+
+                        res.status(200).json({
+                            ok: true,
+                            hospitales: hospitales,
+                            total: conteo
+                        });
+
+                    })
+
+                })
+    } else {
+
+        Hospital.find({})
+            .populate('usuario', 'nombre img email')
+            .skip(desde)
+            .limit(5)
+            .exec(
+                (err, hospitales) => {
+
+                    if (err) { // si tengo error mando un msj de error
+                        return res.status(500).json({
+                            ok: false,
+                            mensaje: "Error cargando Hospitales",
+                            errors: err
+                        });
+                    }
+
+                    Hospital.count({}, (err, conteo) => {
+
+                        res.status(200).json({
+                            ok: true,
+                            hospitales: hospitales,
+                            total: conteo
+                        });
+
+                    })
 
                 })
 
-            })
+    }
 });
 
-/*--------------------------------------*/
-/*--------- Actualizar hospital ---------*/
-/*--------------------------------------*/
+/*--------------------------------------------------*/
+/* Buscar hospital por ID                           */
+/*--------------------------------------------------*/
+
+app.get('/:id', (req, res) => {
+
+    var id = req.params.id;
+    Hospital.findById(id)
+        .populate('usuario', 'nombre img email')
+        .exec((err, hospital) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar hospital',
+                    errors: err
+                });
+            }
+
+            if (!hospital) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El hospital con el id ' + id + 'no existe',
+                    errors: { message: 'No existe un hospital con ese ID' }
+                });
+            }
+            res.status(200).json({
+                ok: true,
+                hospital: hospital
+            });
+        })
+
+});
+
+
+/*--------------------------------------------------*/
+/* Actualizar hospital                              */
+/*--------------------------------------------------*/
 // :id indica que es un recurso obligatorio de la aplicación 
 app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
@@ -95,9 +160,9 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 });
 
 
-/*---------------------------------------*/
-/*--------- Crear nuevo hospital ---------*/
-/*---------------------------------------*/
+/*--------------------------------------------------*/
+/*Crear nuevo hospital                              */
+/*--------------------------------------------------*/
 
 app.post('/', mdAutenticacion.verificaToken, (req, res) => { // mando el middleware con las validaciones (puede ser un arreglo)
 
@@ -127,9 +192,9 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => { // mando el middlew
 
 });
 
-/*----------------------------------------------*/
-/*--------- Borrar Hospital por ID -------------*/
-/*----------------------------------------------*/
+/*--------------------------------------------------*/
+/* Borrar Hospital por ID                           */
+/*--------------------------------------------------*/
 
 app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
